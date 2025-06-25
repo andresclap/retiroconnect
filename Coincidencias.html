@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coincidencias</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f0fff7;
+      color: #111;
+    }
+
+    .grid-menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .menu-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #007e65;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .notificacion-burbuja {
+      display: none;
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background-color: #00b980;
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-weight: bold;
+      animation: parpadeoVerde 1s infinite;
+    }
+
+    @keyframes parpadeoVerde {
+      0%, 100% { background-color: #00b980; }
+      50% { background-color: #2be09e; }
+    }
+
+    .agenda {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      margin-top: 3rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+
+    .agenda h3 {
+      margin-bottom: 1rem;
+      color: #007e65;
+    }
+
+    .agenda button {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      background-color: #00b980;
+      color: white;
+      border: none;
+      font-weight: 600;
+    }
+
+    .boton-amigos {
+      padding: 0.6rem 1rem;
+      font-size: 24px;
+      background-color: #00b980;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .boton-amigos:hover {
+      transform: scale(1.1);
+    }
+
+    .modal-amigos {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1000;
+      display: none;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-contenido {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      z-index: 1001;
+      animation: fadeInUp 0.4s ease;
+      text-align: center;
+    }
+
+    .modal-cerrar {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #777;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translate(-50%, -40%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-menu">
+    <div class="menu-card" onclick="window.location.href='perfil.html'">👤 Ir a mi perfil
+      <span id="notificacion-solicitudes" class="notificacion-burbuja">1</span>
+    </div>
+    <div class="menu-card" onclick="window.location.href='eventos.html'">🎉 Ver eventos relacionados</div>
+    <div class="menu-card" onclick="window.location.href='explorar.html'">🌿 Amigos coincidentes</div>
+  </div>
+
+  <div class="agenda">
+    <h3>🗓️ Mi Agenda</h3>
+    <div id="agenda-eventos">Cargando agenda...</div>
+    <a href="mis_eventos.html">
+      <button>📅 Ver todos mis eventos</button>
+    </a>
+  </div>
+
+  <div style="text-align: center; margin-top: 2rem;">
+    <button class="boton-amigos" onclick="abrirModalAmigos()">👥</button>
+  </div>
+
+  <div id="modal-amigos" class="modal-amigos">
+    <div class="modal-backdrop" onclick="cerrarModalAmigos()"></div>
+    <div class="modal-contenido">
+      <button onclick="cerrarModalAmigos()" class="modal-cerrar">✖</button>
+      <h3>👥 Tus amigos</h3>
+      <div id="lista-amigos" style="margin-top: 1rem;"></div>
+      <button onclick="cerrarModalAmigos()" style="margin-top: 2rem;">Salir</button>
+    </div>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://uenvbpfyjfdwbleenkyj.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
+    );
+
+    function abrirModalAmigos() {
+      document.getElementById("modal-amigos").style.display = "block";
+      mostrarAmigos();
+    }
+
+    function cerrarModalAmigos() {
+      document.getElementById("modal-amigos").style.display = "none";
+    }
+
+    async function cargarAgendaPersonal() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: eventos } = await supabase.from("eventos").select("*");
+      const confirmados = (eventos || []).filter(e =>
+        Array.isArray(e.usuarios_confirmados) && e.usuarios_confirmados.includes(user.id)
+      ).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).slice(0, 3);
+
+      document.getElementById("agenda-eventos").innerHTML = confirmados.length === 0
+        ? "No hay eventos confirmados."
+        : confirmados.map(e => `
+            <div style="margin-bottom: 10px;">
+              <strong>${e.nombre}</strong><br/>
+              📍 ${e.lugar}<br/>
+              🕒 ${new Date(e.fecha).toLocaleString()}
+            </div>
+          `).join("");
+    }
+
+    async function mostrarAmigos() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const miId = user.id;
+      const { data: solicitudes } = await supabase
+        .from("solicitudes_amigos")
+        .select("*")
+        .eq("estado", "aceptada")
+        .or(`emisor_id.eq.${miId},receptor_id.eq.${miId}`);
+
+      const idsAmigos = solicitudes.map(s =>
+        s.emisor_id === miId ? s.receptor_id : s.emisor_id
+      );
+
+      const { data: amigos } = await supabase
+        .from("usuarios")
+        .select("user_id, nombre, foto_url")
+        .in("user_id", idsAmigos);
+
+      const lista = document.getElementById("lista-amigos");
+      lista.innerHTML = amigos.length === 0 ? "<p>No tienes amigos aún 😢</p>" :
+        amigos.map(a => `
+          <div onclick="window.location.href='ver_perfil.html?id=${a.user_id}'"
+               style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; background: #f0fff7; padding: 0.8rem; border-radius: 12px; cursor: pointer;">
+            <img src="${a.foto_url || 'https://placehold.co/40x40?text=👤'}"
+                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+            <span style="font-weight: 600;">${a.nombre}</span>
+          </div>
+        `).join("");
+    }
+
+    async function mostrarNotificacionSolicitudes() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: solicitudes } = await supabase
+        .from("solicitudes_amigos")
+        .select("id")
+        .eq("receptor_id", user.id)
+        .eq("estado", "pendiente");
+
+      const burbuja = document.getElementById("notificacion-solicitudes");
+      if (solicitudes.length > 0) {
+        burbuja.style.display = "inline";
+        burbuja.textContent = solicitudes.length;
+      } else {
+        burbuja.style.display = "none";
+      }
+    }
+
+    cargarAgendaPersonal();
+    mostrarNotificacionSolicitudes();
+  </script>
+</body>
+</html>

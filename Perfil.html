@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0fdf4;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      max-width: 420px;
+      width: 100%;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #00b980;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    input {
+      padding: 0.9rem;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.9rem;
+      background-color: #00b980;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #009d70;
+    }
+
+    .mensaje {
+      text-align: center;
+      margin-top: 1rem;
+      color: #007e65;
+      font-size: 14px;
+    }
+
+    .solicitudes {
+      margin-top: 2rem;
+    }
+
+    .solicitudes h3 {
+      font-size: 1.1rem;
+      color: #007e65;
+      margin-bottom: 1rem;
+    }
+
+    .solicitud {
+      background: #f9fffc;
+      border: 1px solid #d2f5e9;
+      border-radius: 14px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .solicitud strong {
+      font-weight: 600;
+      color: #00b980;
+    }
+
+    .solicitud-buttons {
+      margin-top: 0.8rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-aceptar,
+    .btn-rechazar {
+      flex: 1;
+      padding: 0.6rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-aceptar {
+      background-color: #00c97e;
+      color: white;
+    }
+
+    .btn-aceptar:hover {
+      background-color: #00b472;
+    }
+
+    .btn-rechazar {
+      background-color: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-rechazar:hover {
+      background-color: #ccc;
+    }
+
+    a {
+      display: block;
+      margin-top: 2rem;
+      text-align: center;
+      color: #00b980;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>👤 Mi Perfil</h2>
+    <input type="text" id="nombre" placeholder="Tu nombre completo" />
+    <button onclick="guardarCambios()">💾 Guardar</button>
+    <p class="mensaje" id="mensaje"></p>
+
+    <div class="solicitudes">
+      <h3>📥 Solicitudes recibidas</h3>
+      <div id="lista-solicitudes">Cargando...</div>
+    </div>
+
+    <a href="coincidencias.html">⬅ Volver a coincidencias</a>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://uenvbpfyjfdwbleenkyj.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
+    );
+
+    let user_id = null;
+
+    async function cargarNombre() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      user_id = user.id;
+
+      const { data } = await supabase
+        .from("usuarios")
+        .select("nombre")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data?.nombre) {
+        document.getElementById("nombre").value = data.nombre;
+      }
+
+      cargarSolicitudes();
+    }
+
+    async function guardarCambios() {
+      const nombre = document.getElementById("nombre").value.trim();
+      if (!nombre) {
+        document.getElementById("mensaje").innerText = "❌ Escribe tu nombre.";
+        return;
+      }
+
+      const { error } = await supabase
+        .from("usuarios")
+        .update({ nombre })
+        .eq("user_id", user_id);
+
+      document.getElementById("mensaje").innerText = error
+        ? "❌ Error al guardar."
+        : "✅ Nombre guardado.";
+    }
+
+    async function cargarSolicitudes() {
+      const { data: solicitudes } = await supabase
+        .from("solicitudes_amigos")
+        .select("id, emisor_id, usuarios:emisor_id(nombre)")
+        .eq("receptor_id", user_id)
+        .eq("estado", "pendiente");
+
+      const contenedor = document.getElementById("lista-solicitudes");
+
+      if (!solicitudes || solicitudes.length === 0) {
+        contenedor.innerHTML = "No tienes solicitudes pendientes.";
+        return;
+      }
+
+      contenedor.innerHTML = solicitudes.map(s => `
+        <div class="solicitud">
+          <strong>👤 ${s.usuarios?.nombre || "Sin nombre"}</strong>
+          <div class="solicitud-buttons">
+            <button class="btn-aceptar" onclick="aceptarSolicitud('${s.id}')">✅ Aceptar</button>
+            <button class="btn-rechazar" onclick="rechazarSolicitud('${s.id}')">❌ Rechazar</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function aceptarSolicitud(id) {
+      const { error } = await supabase
+        .from("solicitudes_amigos")
+        .update({ estado: "aceptada" })
+        .eq("id", id);
+
+      if (error) {
+        alert("❌ Error al aceptar solicitud");
+      }
+
+      cargarSolicitudes();
+    }
+
+    async function rechazarSolicitud(id) {
+      const { error } = await supabase
+        .from("solicitudes_amigos")
+        .update({ estado: "rechazada" })
+        .eq("id", id);
+
+      cargarSolicitudes();
+    }
+
+    cargarNombre();
+  </script>
+</body>
+</html>

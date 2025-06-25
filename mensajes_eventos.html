@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat del Evento</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0fff7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h2 {
+      color: #007e65;
+      margin: 0;
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .mensaje {
+      background: white;
+      padding: 1rem;
+      border-radius: 16px;
+      margin-bottom: 1rem;
+      max-width: 75%;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+      animation: fadeInUp 0.4s ease;
+    }
+
+    .mensaje.propio {
+      margin-left: auto;
+      background: #d0fff0;
+    }
+
+    footer {
+      padding: 1rem 2rem;
+      background: white;
+      display: flex;
+      gap: 1rem;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    button {
+      background-color: #00b980;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #009e6f;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2 id="nombre-evento">Cargando evento...</h2>
+    <a href="mis_eventos.html" style="color: #00b980; text-decoration: none; font-weight: 600;">⬅ Volver</a>
+  </header>
+
+  <main id="chat-container">
+    <p>Cargando mensajes...</p>
+  </main>
+
+  <footer>
+    <input type="text" id="mensaje-input" placeholder="Escribe tu mensaje..." />
+    <button onclick="enviarMensaje()">Enviar</button>
+  </footer>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://uenvbpfyjfdwbleenkyj.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
+    );
+
+    const params = new URLSearchParams(window.location.search);
+    const eventoId = params.get("id");
+    let userId = null;
+    let userName = "Usuario";
+
+    async function cargarInfo() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      userId = user.id;
+
+      const { data: perfil } = await supabase
+        .from("usuarios")
+        .select("nombre")
+        .eq("user_id", userId)
+        .single();
+
+      if (perfil) userName = perfil.nombre;
+
+      const { data: evento } = await supabase
+        .from("eventos")
+        .select("nombre")
+        .eq("id", eventoId)
+        .single();
+
+      document.getElementById("nombre-evento").innerText = evento?.nombre || "Evento";
+    }
+
+    async function cargarMensajes() {
+      const { data: mensajes } = await supabase
+        .from("mensajes_eventos")
+        .select("*")
+        .eq("evento_id", eventoId)
+        .order("fecha", { ascending: true });
+
+      const contenedor = document.getElementById("chat-container");
+      if (!mensajes || mensajes.length === 0) {
+        contenedor.innerHTML = "<p>No hay mensajes aún.</p>";
+        return;
+      }
+
+      contenedor.innerHTML = mensajes.map(m => `
+        <div class="mensaje ${m.user_id === userId ? 'propio' : ''}">
+          <strong>${m.usuario}:</strong><br/>
+          ${m.contenido}
+        </div>
+      `).join("");
+
+      contenedor.scrollTop = contenedor.scrollHeight;
+    }
+
+    async function enviarMensaje() {
+      const input = document.getElementById("mensaje-input");
+      const contenido = input.value.trim();
+      if (!contenido) return;
+
+      await supabase
+        .from("mensajes_eventos")
+        .insert({
+          evento_id: eventoId,
+          user_id: userId,
+          usuario: userName,
+          contenido: contenido,
+          fecha: new Date().toISOString(),
+        });
+
+      input.value = "";
+      cargarMensajes();
+    }
+
+    supabase
+      .channel('chat-evento-' + eventoId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mensajes_eventos' }, payload => {
+        cargarMensajes();
+      })
+      .subscribe();
+
+    cargarInfo();
+    cargarMensajes();
+  </script>
+</body>
+</html>

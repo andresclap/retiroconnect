@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Solicitudes de Amistad</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+    .solicitud {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .info img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .acciones button {
+      margin-left: 0.5rem;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .aceptar {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .rechazar {
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>📬 Solicitudes de amistad recibidas</h2>
+  <div id="lista-solicitudes">Cargando...</div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://uenvbpfyjfdwbleenkyj.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
+    );
+
+    let usuario;
+
+    async function cargarSolicitudes() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        document.getElementById("lista-solicitudes").innerText = "Inicia sesión.";
+        return;
+      }
+
+      usuario = user;
+
+      const { data: solicitudes, error } = await supabase
+        .from("solicitudes")
+        .select("id, emisor_id")
+        .eq("receptor_id", user.id)
+        .eq("estado", "pendiente");
+
+      if (error || solicitudes.length === 0) {
+        document.getElementById("lista-solicitudes").innerText = "No tienes solicitudes pendientes.";
+        return;
+      }
+
+      const perfiles = await Promise.all(solicitudes.map(async (sol) => {
+        const { data } = await supabase
+          .from("usuarios")
+          .select("nombre, foto_url")
+          .eq("user_id", sol.emisor_id)
+          .single();
+        return { ...sol, ...data };
+      }));
+
+      const html = perfiles.map(p => `
+        <div class="solicitud">
+          <div class="info">
+            <img src="${p.foto_url || 'https://placehold.co/50x50?text=Foto'}" />
+            <div>
+              <strong>${p.nombre || "Sin nombre"}</strong><br>
+              <small>ID: ${p.emisor_id.slice(0, 8)}...</small>
+            </div>
+          </div>
+          <div class="acciones">
+            <button class="aceptar" onclick="responder('${p.id}', 'aceptada')">✅ Aceptar</button>
+            <button class="rechazar" onclick="responder('${p.id}', 'rechazada')">❌ Rechazar</button>
+          </div>
+        </div>
+      `).join("");
+
+      document.getElementById("lista-solicitudes").innerHTML = html;
+    }
+
+    async function responder(id, estado) {
+      const { error } = await supabase
+        .from("solicitudes")
+        .update({ estado })
+        .eq("id", id);
+
+      if (!error) {
+        cargarSolicitudes(); // refrescar lista
+      }
+    }
+
+    cargarSolicitudes();
+  </script>
+</body>
+</html>

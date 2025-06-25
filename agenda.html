@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mi Agenda Personal</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+    }
+    .evento {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>📅 Mi Agenda de Eventos</h1>
+  <div id="agenda">Cargando...</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://uenvbpfyjfdwbleenkyj.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function cargarAgenda() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        document.getElementById("agenda").innerText = "Inicia sesión para ver tu agenda.";
+        return;
+      }
+
+      const { data: eventos, error } = await supabase
+        .from("eventos")
+        .select("*");
+
+      if (error) {
+        document.getElementById("agenda").innerText = "Error al cargar tus eventos.";
+        return;
+      }
+
+      const confirmados = eventos
+        .filter(e => Array.isArray(e.usuarios_confirmados) && e.usuarios_confirmados.includes(user.id))
+        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha)); // Ordenar por fecha
+
+      if (confirmados.length === 0) {
+        document.getElementById("agenda").innerText = "Aún no tienes eventos en tu agenda.";
+        return;
+      }
+
+      const html = confirmados.map(e => `
+        <div class="evento">
+          <h3>${e.nombre}</h3>
+          <p><strong>📍 Lugar:</strong> ${e.lugar}</p>
+          <p><strong>📅 Fecha:</strong> ${new Date(e.fecha).toLocaleString()}</p>
+          <p><strong>🎯 Gustos:</strong> ${e.gustos_relacionados.join(", ")}</p>
+        </div>
+      `).join("");
+
+      document.getElementById("agenda").innerHTML = html;
+    }
+
+    cargarAgenda();
+  </script>
+</body>
+</html>

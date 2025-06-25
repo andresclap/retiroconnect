@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selecciona tus intereses</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f0fff7;
+      color: #111;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0;
+      color: #007e65;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card input {
+      display: none;
+    }
+
+    .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #007e65;
+    }
+
+    .card label {
+      display: block;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .highlight {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border-radius: 16px;
+      z-index: 0;
+      background: linear-gradient(145deg, #a2f6b1, #6be3aa, #00b980);
+      animation: shine 1s ease forwards;
+      opacity: 0;
+    }
+
+    @keyframes shine {
+      0% {
+        clip-path: circle(0% at 100% 100%);
+        opacity: 0.1;
+      }
+      100% {
+        clip-path: circle(150% at 50% 50%);
+        opacity: 0.4;
+      }
+    }
+
+    .card.selected .highlight {
+      opacity: 1;
+    }
+
+    button {
+      margin: 2rem auto 0;
+      display: block;
+      padding: 0.8rem 1.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      background-color: #00b980;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #009e6f;
+    }
+
+    #mensaje {
+      text-align: center;
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Elige tus intereses</h1>
+  </header>
+
+  <form id="intereses-form" class="grid">
+    <div class="card" data-value="Café">
+      <div class="highlight"></div>
+      <div class="icon"><i data-lucide="coffee"></i></div>
+      <label>Café</label>
+      <input type="checkbox" name="gustos" value="Café" />
+    </div>
+    <div class="card" data-value="Naturaleza">
+      <div class="highlight"></div>
+      <div class="icon"><i data-lucide="tree-pine"></i></div>
+      <label>Naturaleza</label>
+      <input type="checkbox" name="gustos" value="Naturaleza" />
+    </div>
+    <div class="card" data-value="Animales">
+      <div class="highlight"></div>
+      <div class="icon"><i data-lucide="paw-print"></i></div>
+      <label>Animales</label>
+      <input type="checkbox" name="gustos" value="Animales" />
+    </div>
+    <div class="card" data-value="Lectura">
+      <div class="highlight"></div>
+      <div class="icon"><i data-lucide="book-open"></i></div>
+      <label>Lectura</label>
+      <input type="checkbox" name="gustos" value="Lectura" />
+    </div>
+    <div class="card" data-value="Ejercicio">
+      <div class="highlight"></div>
+      <div class="icon"><i data-lucide="dumbbell"></i></div>
+      <label>Ejercicio</label>
+      <input type="checkbox" name="gustos" value="Ejercicio" />
+    </div>
+    <div class="card" data-value="Espiritualidad">
+      <div class="highlight"></div>
+      <div class="icon"><i data-lucide="sparkles"></i></div>
+      <label>Espiritualidad</label>
+      <input type="checkbox" name="gustos" value="Espiritualidad" />
+    </div>
+  </form>
+
+  <button type="button" onclick="guardarGustos()">Guardar intereses</button>
+  <p id="mensaje"></p>
+
+  <script>
+    lucide.createIcons();
+
+    const supabase = window.supabase.createClient(
+      "https://uenvbpfyjfdwbleenkyj.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
+    );
+
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', () => {
+        card.classList.toggle('selected');
+        const checkbox = card.querySelector('input');
+        checkbox.checked = !checkbox.checked;
+      });
+    });
+
+    async function guardarGustos() {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+      const intereses = Array.from(checkboxes).map(cb => cb.value);
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        document.getElementById("mensaje").innerText = "❌ No has iniciado sesión.";
+        return;
+      }
+
+      const { error } = await supabase
+        .from("intereses")
+        .upsert([{ user_id: user.id, gustos: intereses }]);
+
+     if (error) {
+  document.getElementById("mensaje").innerText = "❌ Error al guardar: " + error.message;
+} else {
+  document.getElementById("mensaje").innerHTML = "<strong style='font-size: 1.5rem;'>Ingresando...</strong>";
+  setTimeout(() => window.location.href = "coincidencias.html", 1500);
+}
+
+      if (!error) {
+        setTimeout(() => window.location.href = "coincidencias.html", 1000);
+      }
+    }
+  </script>
+</body>
+</html>
