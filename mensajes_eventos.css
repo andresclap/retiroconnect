@@ -1,0 +1,133 @@
+/* Fuente base */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background: #f0fff7;
+  color: #111;
+}
+
+/* Contenedor principal del chat */
+.chat-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Mensaje recibido (otro usuario) */
+.mensaje-recibido {
+  align-self: flex-start;
+  background: rgba(0, 174, 136, 0.1);
+  color: #007e65;
+  padding: 0.9rem 1.2rem;
+  border-radius: 18px 18px 18px 6px;
+  max-width: 75%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Mensaje enviado (yo) */
+.mensaje-enviado {
+  align-self: flex-end;
+  background: rgba(0, 185, 128, 0.2);
+  color: #004d3d;
+  padding: 0.9rem 1.2rem;
+  border-radius: 18px 18px 6px 18px;
+  max-width: 75%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Nombre de quien envía */
+.mensaje-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #00a67e;
+  margin-bottom: 4px;
+  padding-left: 4px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+/* Entrada de texto */
+.input-container {
+  display: flex;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: white;
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* Campo de entrada */
+.input-container input[type="text"] {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #b2f0d9;
+  border-radius: 12px;
+  outline: none;
+  transition: border 0.3s;
+  background: #ffffff;
+}
+
+.input-container input[type="text"]:focus {
+  border-color: #00b980;
+}
+
+/* Botón de enviar */
+.input-container button {
+  padding: 0 1.2rem;
+  background-color: #00b980;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.input-container button:hover {
+  background-color: #00a072;
+}
+
+/* Animación sutil al aparecer mensaje */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .chat-container {
+    padding: 1rem;
+  }
+
+  .mensaje-recibido, .mensaje-enviado {
+    max-width: 90%;
+  }
+
+  .input-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .input-container button {
+    width: 100%;
+  }
+}
