@@ -8,12 +8,15 @@
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Fuente e íconos -->
+  <!-- Fuentes e íconos -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
@@ -29,6 +32,9 @@
       padding: 1rem 2rem;
       background-color: #fff;
       border-bottom: 1px solid #e0e0e0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .logo {
@@ -85,6 +91,7 @@
     .hero h1 {
       font-size: 2.5rem;
       font-weight: 800;
+      line-height: 1.3;
     }
 
     .hero span {
@@ -96,6 +103,9 @@
       font-size: 1.1rem;
       color: #444;
       margin-top: 1rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .hero button {
@@ -125,6 +135,7 @@
       z-index: 1000;
       justify-content: center;
       align-items: center;
+      padding: 1rem;
     }
 
     .form-container {
@@ -132,7 +143,7 @@
       padding: 2rem;
       border-radius: 16px;
       max-width: 400px;
-      width: 90%;
+      width: 100%;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       position: relative;
       text-align: center;
@@ -146,7 +157,7 @@
 
     input {
       width: 100%;
-      padding: 0.8rem;
+      padding: 0.9rem;
       margin: 0.5rem 0;
       font-size: 1rem;
       border: 1px solid #ccc;
@@ -155,7 +166,7 @@
 
     .btn {
       width: 100%;
-      padding: 0.8rem;
+      padding: 0.9rem;
       background-color: #007e65;
       color: white;
       font-size: 1rem;
@@ -185,9 +196,22 @@
     .cerrar-modal:hover { color: #000; }
 
     @media (max-width: 600px) {
-      .hero h1 { font-size: 1.8rem; }
-      .hero p { font-size: 1rem; }
-      .botones-header button { padding: 6px 12px; font-size: 0.9rem; }
+      .hero h1 {
+        font-size: 1.8rem;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+
+      .botones-header button {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+      }
+
+      .hero button {
+        width: 100%;
+      }
     }
   </style>
 </head>
