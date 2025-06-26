@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registrar Negocio | RetiroConnect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="negocios.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="contenedor">
+    <div class="formulario">
+      <h2>📍 Registrar un Negocio</h2>
+      <form id="form-negocio">
+        <label for="nombre">Nombre del negocio</label>
+        <input type="text" id="nombre" required />
+
+        <label for="gusto">Gusto relacionado</label>
+        <select id="gusto" required>
+          <option value="">Selecciona un gusto</option>
+          <option value="Café">Café</option>
+          <option value="Naturaleza">Naturaleza</option>
+          <option value="Animales">Animales</option>
+          <option value="Lectura">Lectura</option>
+          <option value="Ejercicio">Ejercicio</option>
+          <option value="Espiritualidad">Espiritualidad</option>
+        </select>
+
+        <label>Selecciona ubicación en el mapa</label>
+        <div id="mapa"></div>
+
+        <input type="hidden" id="latitud" />
+        <input type="hidden" id="longitud" />
+
+        <button type="submit">✅ Registrar negocio</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://uenvbpfyjfdwbleenkyj.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
+    );
+
+    const mapa = L.map("mapa").setView([6.0579, -75.5011], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(mapa);
+
+    let marcador = null;
+    mapa.on("click", function (e) {
+      const { lat, lng } = e.latlng;
+      if (marcador) {
+        marcador.setLatLng([lat, lng]);
+      } else {
+        marcador = L.marker([lat, lng]).addTo(mapa);
+      }
+      document.getElementById("latitud").value = lat;
+      document.getElementById("longitud").value = lng;
+    });
+
+    document.getElementById("form-negocio").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("⚠️ Debes iniciar sesión.");
+
+      const nombre = document.getElementById("nombre").value.trim();
+      const gusto = document.getElementById("gusto").value;
+      const lat = parseFloat(document.getElementById("latitud").value);
+      const lng = parseFloat(document.getElementById("longitud").value);
+
+      if (!lat || !lng) return alert("⚠️ Selecciona una ubicación en el mapa.");
+
+      const { error } = await supabase.from("negocios").insert([
+        {
+          nombre,
+          gusto_relacionado: gusto,
+          latitud: lat,
+          longitud: lng,
+          creado_por: user.id,
+        },
+      ]);
+
+      if (error) {
+        console.error(error);
+        return alert("❌ Ocurrió un error al registrar el negocio.");
+      }
+
+      alert("✅ ¡Negocio registrado con éxito!");
+      location.reload();
+    });
+  </script>
+</body>
+</html>
+

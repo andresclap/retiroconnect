@@ -1,0 +1,75 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(180deg, #f6fefc 0%, #eaf9f4 100%);
+  color: #333;
+  padding: 2rem;
+}
+
+.contenedor {
+  max-width: 600px;
+  margin: auto;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  transition: all 0.3s ease-in-out;
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: #06c48a;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+form label {
+  font-weight: 600;
+  margin-top: 1rem;
+  display: block;
+  color: #067d68;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #cce5dc;
+  border-radius: 12px;
+  font-size: 1rem;
+  background-color: #f9fefc;
+  transition: border 0.2s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #06c48a;
+  background-color: #fff;
+}
+
+#mapa {
+  height: 250px;
+  border-radius: 15px;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #cdebe1;
+  overflow: hidden;
+}
+
+button[type="submit"] {
+  background-color: #06c48a;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: #049d6e;
+}

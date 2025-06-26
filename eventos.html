@@ -1,12 +1,12 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <title>Eventos en el mapa</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="eventos.css">
+  <link rel="stylesheet" href="eventos.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -16,28 +16,19 @@
 
   <div id="mapa"></div>
 
-  <!-- Botón flotante para crear evento -->
-  <button id="btn-nuevo-evento" title="Crear evento">＋</button>
+  <!-- Botón corazón flotante para registrar negocio -->
+  <button id="btn-negocio" title="Registrar negocio">💚</button>
 
-  <!-- Modal para crear evento -->
-  <div id="modal-crear" class="modal-crear oculto">
+  <!-- Modal para registrar negocio -->
+  <div id="modal-negocio" class="modal oculto">
     <div class="contenido-modal">
-      <h2>📍 Crear un Evento</h2>
-      <form id="form-evento">
-        <label>Título del evento</label>
-        <input type="text" id="titulo" required>
-
-        <label>Descripción</label>
-        <textarea id="descripcion"></textarea>
-
-        <label>Lugar</label>
-        <input type="text" id="lugar" required>
-
-        <label>Fecha y hora</label>
-        <input type="datetime-local" id="fecha" required>
+      <h2>📍 Registrar Negocio</h2>
+      <form id="form-negocio">
+        <label>Nombre del negocio</label>
+        <input type="text" id="nombre-negocio" required />
 
         <label>Gusto relacionado</label>
-        <select id="gusto" required>
+        <select id="gusto-negocio" required>
           <option value="">Selecciona un gusto</option>
           <option value="Café">Café</option>
           <option value="Naturaleza">Naturaleza</option>
@@ -47,13 +38,12 @@
           <option value="Espiritualidad">Espiritualidad</option>
         </select>
 
-        <label>Selecciona ubicación:</label>
-        <div id="mapa-crear"></div>
+        <label>Ubicación del negocio</label>
+        <div id="mapa-negocio"></div>
+        <input type="hidden" id="lat-negocio" />
+        <input type="hidden" id="lng-negocio" />
 
-        <input type="hidden" id="latitud" />
-        <input type="hidden" id="longitud" />
-
-        <button type="submit">Crear Evento</button>
+        <button type="submit">✅ Registrar Negocio</button>
       </form>
     </div>
   </div>
@@ -63,6 +53,57 @@
     const SUPABASE_URL = "https://uenvbpfyjfdwbleenkyj.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let mapaPrincipal, marcadorNegocio = null;
+
+    async function cargarMapaPrincipal() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.warn("No autenticado.");
+        return;
+      }
+
+      const { data: intereses } = await supabase
+        .from("intereses")
+        .select("gustos")
+        .eq("user_id", user.id)
+        .single();
+
+      const gustos = intereses?.gustos || [];
+      const { data: eventos } = await supabase.from("eventos").select("*");
+
+      mapaPrincipal = L.map('mapa').setView([6.0579, -75.5011], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapaPrincipal);
+
+      const icono = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/833/833472.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      });
+
+      eventos.forEach(e => {
+        if (
+          e.latitud &&
+          e.longitud &&
+          Array.isArray(e.gustos_relacionados) &&
+          e.gustos_relacionados.some(g => gustos.includes(g))
+        ) {
+          const popup = `
+            <strong>${e.nombre}</strong><br/>
+            📍 ${e.lugar}<br/>
+            📅 ${new Date(e.fecha).toLocaleString()}<br/>
+            🎯 ${e.gustos_relacionados.join(", ")}<br/>
+            <button onclick="confirmarAsistencia('${e.id}')">✅ Confirmar</button>
+          `;
+          L.marker([e.latitud, e.longitud], { icon: icono })
+            .addTo(mapaPrincipal)
+            .bindPopup(popup);
+        }
+      });
+    }
 
     async function confirmarAsistencia(eventoId) {
       const { data: { user } } = await supabase.auth.getUser();
@@ -85,120 +126,56 @@
       alert("✅ Asistencia confirmada.");
     }
 
-    async function cargarEventosYMapa() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    document.getElementById("btn-negocio").addEventListener("click", () => {
+      document.getElementById("modal-negocio").classList.remove("oculto");
 
-      const { data: intereses } = await supabase
-        .from("intereses")
-        .select("gustos")
-        .eq("user_id", user.id)
-        .single();
-
-      const gustos = intereses?.gustos || [];
-
-      const { data: eventos } = await supabase.from("eventos").select("*");
-
-      const mapa = L.map('mapa').setView([6.0579, -75.5011], 13);
+      const mapaNegocio = L.map('mapa-negocio').setView([6.0579, -75.5011], 14);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(mapa);
+        attribution: ''
+      }).addTo(mapaNegocio);
 
-      const iconoCorazon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/833/833472.png',
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32]
+      mapaNegocio.on("click", e => {
+        const { lat, lng } = e.latlng;
+        if (marcadorNegocio) marcadorNegocio.setLatLng([lat, lng]);
+        else marcadorNegocio = L.marker([lat, lng]).addTo(mapaNegocio);
+        document.getElementById("lat-negocio").value = lat;
+        document.getElementById("lng-negocio").value = lng;
       });
-
-      eventos.forEach(e => {
-        if (
-          Array.isArray(e.gustos_relacionados) &&
-          e.gustos_relacionados.some(g => gustos.includes(g)) &&
-          !(e.usuarios_confirmados || []).includes(user.id) &&
-          e.latitud && e.longitud
-        ) {
-          const popup = `
-            <div style="text-align: left;">
-              <strong>${e.nombre}</strong><br/>
-              📍 ${e.lugar}<br/>
-              📅 ${new Date(e.fecha).toLocaleString()}<br/>
-              🎯 ${e.gustos_relacionados.join(", ")}<br/>
-              <button onclick="confirmarAsistencia('${e.id}')">✅ Confirmar</button>
-            </div>
-          `;
-          L.marker([e.latitud, e.longitud], { icon: iconoCorazon })
-            .addTo(mapa)
-            .bindPopup(popup);
-        }
-      });
-    }
-
-    cargarEventosYMapa();
-
-    // Modal creación
-    const modal = document.getElementById("modal-crear");
-    const btnCrear = document.getElementById("btn-nuevo-evento");
-
-    btnCrear.addEventListener("click", () => {
-      modal.classList.remove("oculto");
-      inicializarMapaCrear();
     });
 
-    let marcadorCrear = null;
-    function inicializarMapaCrear() {
-      const mapaCrear = L.map('mapa-crear').setView([6.0579, -75.5011], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(mapaCrear);
-
-      mapaCrear.on('click', function(e) {
-        const { lat, lng } = e.latlng;
-        if (marcadorCrear) {
-          marcadorCrear.setLatLng([lat, lng]);
-        } else {
-          marcadorCrear = L.marker([lat, lng]).addTo(mapaCrear);
-        }
-        document.getElementById("latitud").value = lat;
-        document.getElementById("longitud").value = lng;
-      });
-    }
-
-    document.getElementById("form-evento").addEventListener("submit", async (e) => {
+    document.getElementById("form-negocio").addEventListener("submit", async e => {
       e.preventDefault();
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert("Inicia sesión para crear eventos.");
+      if (!user) return alert("Inicia sesión.");
 
-      const titulo = document.getElementById("titulo").value.trim();
-      const descripcion = document.getElementById("descripcion").value.trim();
-      const lugar = document.getElementById("lugar").value.trim();
-      const fecha = document.getElementById("fecha").value;
-      const gusto = document.getElementById("gusto").value;
-      const latitud = parseFloat(document.getElementById("latitud").value);
-      const longitud = parseFloat(document.getElementById("longitud").value);
+      const nombre = document.getElementById("nombre-negocio").value.trim();
+      const gusto = document.getElementById("gusto-negocio").value;
+      const lat = parseFloat(document.getElementById("lat-negocio").value);
+      const lng = parseFloat(document.getElementById("lng-negocio").value);
 
-      if (!latitud || !longitud) return alert("Selecciona ubicación en el mapa.");
+      if (!nombre || !gusto || !lat || !lng) {
+        return alert("Completa todos los campos.");
+      }
 
-      const { error } = await supabase.from("eventos").insert([{
-        nombre: titulo,
-        descripcion: descripcion || null,
-        lugar,
-        fecha,
-        gustos_relacionados: [gusto],
-        latitud,
-        longitud,
-        creado_por: user.id,
-        usuarios_confirmados: []
+      const { error } = await supabase.from("negocios").insert([{
+        nombre,
+        gusto_relacionado: gusto,
+        latitud: lat,
+        longitud: lng,
+        creado_por: user.id
       }]);
 
       if (error) {
-        alert("Error al crear el evento.");
+        alert("❌ Error al registrar negocio.");
         console.error(error);
       } else {
-        alert("✅ ¡Evento creado con éxito!");
+        alert("✅ Negocio registrado con éxito.");
         location.reload();
       }
     });
+
+    cargarMapaPrincipal();
   </script>
 </body>
 </html>

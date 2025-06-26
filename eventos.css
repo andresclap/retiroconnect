@@ -1,36 +1,58 @@
-/* Reset básico */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Fuente principal */
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f6fefc;
+  background-color: #f4fbf9;
   color: #333;
 }
 
-/* Encabezado */
 header {
   background-color: #06c48a;
+  color: white;
   padding: 1rem;
   text-align: center;
-  color: white;
-  font-size: 1.2rem;
-  font-weight: 600;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  font-size: 1.3rem;
+  font-weight: bold;
+  border-bottom: 3px solid #04a97d;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
-/* Mapa principal */
 #mapa {
-  height: 100vh;
-  z-index: 1;
+  height: calc(100vh - 70px);
+  border-radius: 20px;
+  margin: 1rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
-/* Botón flotante para crear evento */
-#btn-nuevo-evento {
+.leaflet-popup-content {
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+}
+
+button {
+  background-color: #06c48a;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+button:hover {
+  background-color: #049f70;
+}
+
+.leaflet-marker-icon.icono-negocio {
+  filter: hue-rotate(90deg);
+}
+#btn-negocio {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
@@ -39,83 +61,145 @@ header {
   border-radius: 50%;
   background-color: #06c48a;
   color: white;
-  font-size: 2rem;
+  font-size: 1.8rem;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  z-index: 900;
-  transition: background 0.3s;
-}
-#btn-nuevo-evento:hover {
-  background-color: #049d6e;
+  z-index: 999;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
-/* Modal fondo */
-.modal-crear {
+.modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(20, 20, 20, 0.6); /* oscurece el fondo */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; justify-content: center; align-items: center;
   z-index: 1000;
 }
 
-/* Contenido modal */
 .contenido-modal {
-  background-color: white;
-  border-radius: 15px;
+  background: white;
+  border-radius: 16px;
   padding: 2rem;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Inputs */
-input, textarea, select, button {
-  width: 100%;
-  padding: 0.7rem;
-  margin-bottom: 1rem;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  font-family: inherit;
+#mapa-negocio {
+  height: 250px;
+  border-radius: 12px;
+  margin: 1rem 0;
 }
 
-/* Labels */
-label {
-  font-weight: 600;
-  color: #067d68;
-  margin-bottom: 0.4rem;
-  display: block;
+.oculto {
+  display: none !important;
+}
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Botón enviar */
-button[type="submit"] {
+/* Fuente global */
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f5fdfb;
+  color: #333;
+}
+
+/* Encabezado */
+header {
   background-color: #06c48a;
   color: white;
+  text-align: center;
+  padding: 1rem;
   font-weight: bold;
-  border: none;
-  transition: background 0.3s;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-button[type="submit"]:hover {
+
+/* Mapa principal */
+#mapa {
+  width: 100%;
+  height: calc(100vh - 70px);
+  z-index: 1;
+}
+
+/* Botón corazón flotante */
+#btn-negocio {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 50%;
+  background-color: #06c48a;
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 999;
+  transition: background 0.3s ease;
+}
+#btn-negocio:hover {
   background-color: #049d6e;
 }
 
-/* Mapa dentro del modal */
-#mapa-crear {
-  height: 250px;
+/* Modal fondo */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+/* Contenido del modal */
+.contenido-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Inputs y selects */
+input, select, button {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
   border-radius: 10px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+/* Etiquetas */
+label {
+  font-weight: 600;
+  color: #067d68;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* Mapa dentro del modal */
+#mapa-negocio {
+  height: 250px;
+  border-radius: 12px;
   margin-bottom: 1rem;
   z-index: 10;
 }
 
-/* Clase para ocultar elementos */
+/* Ocultar elementos */
 .oculto {
   display: none !important;
 }
