@@ -2,245 +2,29 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RetiroConnect - Iniciar sesión</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RetiroConnect</title>
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Fuentes e íconos -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f0fff7;
-      color: #111;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      background-color: #fff;
-      border-bottom: 1px solid #e0e0e0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .logo {
-      font-weight: 800;
-      font-size: 1.3rem;
-      color: #007e65;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .logo-icon {
-      width: 24px;
-      height: 24px;
-      background-color: #00b980;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .botones-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .botones-header button {
-      background-color: #007e65;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background-color 0.2s ease;
-    }
-
-    .botones-header button:hover {
-      background-color: #005c4d;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 4rem 2rem;
-    }
-
-    .hero h1 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      line-height: 1.3;
-    }
-
-    .hero span {
-      color: #00b980;
-      border-bottom: 3px solid #00b980;
-    }
-
-    .hero p {
-      font-size: 1.1rem;
-      color: #444;
-      margin-top: 1rem;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .hero button {
-      margin-top: 2rem;
-      background-color: #00b980;
-      border: none;
-      padding: 14px 24px;
-      color: white;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .hero button:hover {
-      background-color: #009e6f;
-    }
-
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      padding: 1rem;
-    }
-
-    .form-container {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 16px;
-      max-width: 400px;
-      width: 100%;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      position: relative;
-      text-align: center;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    input {
-      width: 100%;
-      padding: 0.9rem;
-      margin: 0.5rem 0;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 0.9rem;
-      background-color: #007e65;
-      color: white;
-      font-size: 1rem;
-      border: none;
-      margin-top: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .btn:hover {
-      background-color: #005c4d;
-    }
-
-    .seccion { display: none; }
-    #status { margin-top: 1rem; font-weight: 500; }
-
-    .cerrar-modal {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 1.5rem;
-      color: #888;
-      cursor: pointer;
-    }
-
-    .cerrar-modal:hover { color: #000; }
-
-    @media (max-width: 600px) {
-      .hero h1 {
-        font-size: 1.8rem;
-      }
-
-      .hero p {
-        font-size: 1rem;
-      }
-
-      .botones-header button {
-        padding: 6px 10px;
-        font-size: 0.9rem;
-      }
-
-      .hero button {
-        width: 100%;
-      }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="auth.css" />
 </head>
 <body>
-  <header>
-    <div class="logo">
-      <div class="logo-icon">❤</div>
-      RetiroConnect
-    </div>
-    <div class="botones-header">
-      <button onclick="abrirModal('login')">
-        <i data-lucide="log-in"></i> Iniciar Sesión
-      </button>
-      <button onclick="abrirModal('registro')">
-        <i data-lucide="user-plus"></i> Registrarse
-      </button>
-    </div>
-  </header>
+  <div id="loader">
+    <div class="loader-heart">❤</div>
+  </div>
 
-  <section class="hero">
-    <h1>Conecta con personas <br><strong>afines en <span>El Retiro</span></strong></h1>
-    <p>Descubre personas con tus mismos gustos e intereses. Comparte experiencias únicas en los lugares más hermosos de El Retiro, Antioquia.</p>
-    <button onclick="abrirModal('registro')">Comenzar a Conectar →</button>
-  </section>
+  <div class="container" id="main-container" style="display: none;">
+    <div class="heart">❤</div>
+    <h1>RetiroConnect</h1>
+    <p>Conecta con personas afines en El Retiro, Antioquia.</p>
+    <button class="btn" id="btn-login">Iniciar Sesión</button>
+    <button class="btn" id="btn-registro">Registrarse</button>
+  </div>
 
   <div class="modal-overlay" id="modal">
     <div class="form-container">
       <div class="cerrar-modal" onclick="cerrarModal()">×</div>
-      <h2 id="titulo">Bienvenido a RetiroConnect</h2>
+      <h2 id="titulo">Bienvenido</h2>
       <div class="seccion" id="registro">
         <input type="email" id="reg-email" placeholder="Correo">
         <input type="password" id="reg-pass" placeholder="Contraseña">
@@ -255,41 +39,66 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script>
-    const supabase = window.supabase.createClient(
-      "https://uenvbpfyjfdwbleenkyj.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
-    );
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById("loader").style.display = "none";
+      document.getElementById("main-container").style.display = "block";
 
-    function abrirModal(seccion) {
-      document.getElementById("modal").style.display = "flex";
-      document.getElementById("registro").style.display = "none";
-      document.getElementById("login").style.display = "none";
-      document.getElementById("titulo").innerText = seccion === 'login' ? "🔐 Iniciar sesión" : "📝 Registrarse";
-      document.getElementById(seccion).style.display = "block";
-      document.getElementById("status").innerText = "";
-    }
+      const supabase = window.supabase.createClient(
+        "https://uenvbpfyjfdwbleenkyj.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM"
+      );
 
-    function cerrarModal() {
-      document.getElementById("modal").style.display = "none";
-    }
+      document.getElementById("btn-login").addEventListener("click", () => abrirModal("login"));
+      document.getElementById("btn-registro").addEventListener("click", () => abrirModal("registro"));
 
-    async function register() {
-      const email = document.getElementById("reg-email").value;
-      const password = document.getElementById("reg-pass").value;
-      const { error } = await supabase.auth.signUp({ email, password });
-      document.getElementById("status").innerText = error ? "❌ " + error.message : "✅ Usuario registrado. Revisa tu correo.";
-    }
+      window.abrirModal = function (seccion) {
+        const modal = document.getElementById("modal");
+        const reg = document.getElementById("registro");
+        const log = document.getElementById("login");
 
-    async function login() {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-pass").value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      document.getElementById("status").innerText = error ? "❌ " + error.message : "✅ Inicio de sesión exitoso.";
-      if (!error) setTimeout(() => window.location.href = "intereses.html", 1000);
-    }
+        if (!modal || !reg || !log) {
+          console.error("No se encontraron los elementos del formulario");
+          return;
+        }
 
-    lucide.createIcons();
+        modal.style.display = "flex";
+        reg.style.display = "none";
+        log.style.display = "none";
+
+        document.getElementById("titulo").innerText =
+          seccion === 'login' ? "🔐 Iniciar sesión" : "📝 Registrarse";
+
+        const target = document.getElementById(seccion);
+        if (target) target.style.display = "block";
+      };
+
+      window.cerrarModal = function () {
+        const modal = document.getElementById("modal");
+        if (modal) modal.style.display = "none";
+      };
+
+      window.register = async function () {
+        const email = document.getElementById("reg-email").value;
+        const password = document.getElementById("reg-pass").value;
+        const { error } = await supabase.auth.signUp({ email, password });
+        document.getElementById("status").innerText =
+          error ? "❌ " + error.message : "✅ Usuario registrado. Revisa tu correo.";
+      };
+
+      window.login = async function () {
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-pass").value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        document.getElementById("status").innerText =
+          error ? "❌ " + error.message : "✅ Inicio de sesión exitoso.";
+        if (!error) setTimeout(() => window.location.href = "intereses.html", 1000);
+      };
+
+      if (window.lucide) lucide.createIcons();
+    });
   </script>
 </body>
 </html>
