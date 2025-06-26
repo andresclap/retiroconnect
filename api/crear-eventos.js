@@ -22,6 +22,7 @@ export default async function handler(req) {
   ];
 
   const ahora = new Date();
+
   const eventos = gustos.map((gusto, i) => {
     const fecha = new Date(ahora.getTime() + (i + 1) * 86400000);
     return {
