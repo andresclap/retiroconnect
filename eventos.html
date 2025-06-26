@@ -1,147 +1,68 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Eventos relacionados</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Eventos en el mapa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f0fff7;
-      margin: 0;
-      padding: 2rem;
-      color: #111;
-    }
-
-    h1 {
-      text-align: center;
-      color: #007e65;
-      margin-bottom: 2rem;
-    }
-
-    .eventos-container {
-      max-width: 800px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .evento {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      animation: fadeInUp 0.4s ease;
-    }
-
-    .evento:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .evento h3 {
-      color: #00b980;
-      margin-top: 0;
-    }
-
-    .evento p {
-      margin: 0.3rem 0;
-      font-size: 15px;
-      color: #333;
-    }
-
-    button {
-      margin-top: 1rem;
-      padding: 10px 20px;
-      background-color: #00b980;
-      color: white;
-      font-weight: 600;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s;
-    }
-
-    button:hover {
-      background-color: #009e6f;
-      transform: scale(1.02);
-    }
-
-    #eventos {
-      text-align: center;
-      font-size: 1rem;
-      color: #555;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="eventos.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h1>🎉 Eventos relacionados con tus gustos</h1>
-  <div class="eventos-container" id="eventos">Cargando eventos...</div>
+  <header>
+    <h1>💚 Eventos en el Mapa</h1>
+  </header>
 
+  <div id="mapa"></div>
+
+  <!-- Botón flotante para crear evento -->
+  <button id="btn-nuevo-evento" title="Crear evento">＋</button>
+
+  <!-- Modal para crear evento -->
+  <div id="modal-crear" class="modal-crear oculto">
+    <div class="contenido-modal">
+      <h2>📍 Crear un Evento</h2>
+      <form id="form-evento">
+        <label>Título del evento</label>
+        <input type="text" id="titulo" required>
+
+        <label>Descripción</label>
+        <textarea id="descripcion"></textarea>
+
+        <label>Lugar</label>
+        <input type="text" id="lugar" required>
+
+        <label>Fecha y hora</label>
+        <input type="datetime-local" id="fecha" required>
+
+        <label>Gusto relacionado</label>
+        <select id="gusto" required>
+          <option value="">Selecciona un gusto</option>
+          <option value="Café">Café</option>
+          <option value="Naturaleza">Naturaleza</option>
+          <option value="Animales">Animales</option>
+          <option value="Lectura">Lectura</option>
+          <option value="Ejercicio">Ejercicio</option>
+          <option value="Espiritualidad">Espiritualidad</option>
+        </select>
+
+        <label>Selecciona ubicación:</label>
+        <div id="mapa-crear"></div>
+
+        <input type="hidden" id="latitud" />
+        <input type="hidden" id="longitud" />
+
+        <button type="submit">Crear Evento</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     const SUPABASE_URL = "https://uenvbpfyjfdwbleenkyj.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    async function cargarEventos() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        document.getElementById("eventos").innerText = "Inicia sesión para ver eventos.";
-        return;
-      }
-
-      const { data: gustosData } = await supabase
-        .from("intereses")
-        .select("gustos")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!gustosData || !Array.isArray(gustosData.gustos)) {
-        document.getElementById("eventos").innerText = "No se pudieron cargar tus gustos.";
-        return;
-      }
-
-      const gustos = gustosData.gustos;
-
-      const { data: eventos } = await supabase.from("eventos").select("*");
-
-      const relacionados = (eventos || []).filter(e =>
-        Array.isArray(e.gustos_relacionados) &&
-        e.gustos_relacionados.some(g => gustos.includes(g)) &&
-        !(e.usuarios_confirmados || []).includes(user.id)
-      );
-
-      if (relacionados.length === 0) {
-        document.getElementById("eventos").innerText = "No hay eventos disponibles ahora.";
-        return;
-      }
-
-      const html = relacionados.map(e => `
-        <div class="evento" id="evento-${e.id}">
-          <h3>${e.nombre}</h3>
-          <p><strong>📍 Lugar:</strong> ${e.lugar}</p>
-          <p><strong>📅 Fecha:</strong> ${new Date(e.fecha).toLocaleString()}</p>
-          <p><strong>🎯 Gustos:</strong> ${e.gustos_relacionados.join(", ")}</p>
-          <button onclick="confirmarAsistencia('${e.id}')">✅ Confirmar asistencia</button>
-        </div>
-      `).join("");
-
-      document.getElementById("eventos").innerHTML = html;
-    }
 
     async function confirmarAsistencia(eventoId) {
       const { data: { user } } = await supabase.auth.getUser();
@@ -161,16 +82,123 @@
         .update({ usuarios_confirmados: actualizados })
         .eq("id", eventoId);
 
-      // Animación de desaparición
-      const card = document.getElementById("evento-" + eventoId);
-      if (card) {
-        card.style.transition = "opacity 0.4s ease";
-        card.style.opacity = "0";
-        setTimeout(() => card.remove(), 400);
-      }
+      alert("✅ Asistencia confirmada.");
     }
 
-    cargarEventos();
+    async function cargarEventosYMapa() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: intereses } = await supabase
+        .from("intereses")
+        .select("gustos")
+        .eq("user_id", user.id)
+        .single();
+
+      const gustos = intereses?.gustos || [];
+
+      const { data: eventos } = await supabase.from("eventos").select("*");
+
+      const mapa = L.map('mapa').setView([6.0579, -75.5011], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapa);
+
+      const iconoCorazon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/833/833472.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      });
+
+      eventos.forEach(e => {
+        if (
+          Array.isArray(e.gustos_relacionados) &&
+          e.gustos_relacionados.some(g => gustos.includes(g)) &&
+          !(e.usuarios_confirmados || []).includes(user.id) &&
+          e.latitud && e.longitud
+        ) {
+          const popup = `
+            <div style="text-align: left;">
+              <strong>${e.nombre}</strong><br/>
+              📍 ${e.lugar}<br/>
+              📅 ${new Date(e.fecha).toLocaleString()}<br/>
+              🎯 ${e.gustos_relacionados.join(", ")}<br/>
+              <button onclick="confirmarAsistencia('${e.id}')">✅ Confirmar</button>
+            </div>
+          `;
+          L.marker([e.latitud, e.longitud], { icon: iconoCorazon })
+            .addTo(mapa)
+            .bindPopup(popup);
+        }
+      });
+    }
+
+    cargarEventosYMapa();
+
+    // Modal creación
+    const modal = document.getElementById("modal-crear");
+    const btnCrear = document.getElementById("btn-nuevo-evento");
+
+    btnCrear.addEventListener("click", () => {
+      modal.classList.remove("oculto");
+      inicializarMapaCrear();
+    });
+
+    let marcadorCrear = null;
+    function inicializarMapaCrear() {
+      const mapaCrear = L.map('mapa-crear').setView([6.0579, -75.5011], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapaCrear);
+
+      mapaCrear.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        if (marcadorCrear) {
+          marcadorCrear.setLatLng([lat, lng]);
+        } else {
+          marcadorCrear = L.marker([lat, lng]).addTo(mapaCrear);
+        }
+        document.getElementById("latitud").value = lat;
+        document.getElementById("longitud").value = lng;
+      });
+    }
+
+    document.getElementById("form-evento").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("Inicia sesión para crear eventos.");
+
+      const titulo = document.getElementById("titulo").value.trim();
+      const descripcion = document.getElementById("descripcion").value.trim();
+      const lugar = document.getElementById("lugar").value.trim();
+      const fecha = document.getElementById("fecha").value;
+      const gusto = document.getElementById("gusto").value;
+      const latitud = parseFloat(document.getElementById("latitud").value);
+      const longitud = parseFloat(document.getElementById("longitud").value);
+
+      if (!latitud || !longitud) return alert("Selecciona ubicación en el mapa.");
+
+      const { error } = await supabase.from("eventos").insert([{
+        nombre: titulo,
+        descripcion: descripcion || null,
+        lugar,
+        fecha,
+        gustos_relacionados: [gusto],
+        latitud,
+        longitud,
+        creado_por: user.id,
+        usuarios_confirmados: []
+      }]);
+
+      if (error) {
+        alert("Error al crear el evento.");
+        console.error(error);
+      } else {
+        alert("✅ ¡Evento creado con éxito!");
+        location.reload();
+      }
+    });
   </script>
 </body>
 </html>

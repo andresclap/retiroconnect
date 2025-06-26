@@ -1,0 +1,121 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fuente principal */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f6fefc;
+  color: #333;
+}
+
+/* Encabezado */
+header {
+  background-color: #06c48a;
+  padding: 1rem;
+  text-align: center;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Mapa principal */
+#mapa {
+  height: 100vh;
+  z-index: 1;
+}
+
+/* Botón flotante para crear evento */
+#btn-nuevo-evento {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #06c48a;
+  color: white;
+  font-size: 2rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 900;
+  transition: background 0.3s;
+}
+#btn-nuevo-evento:hover {
+  background-color: #049d6e;
+}
+
+/* Modal fondo */
+.modal-crear {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 20, 20, 0.6); /* oscurece el fondo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Contenido modal */
+.contenido-modal {
+  background-color: white;
+  border-radius: 15px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Inputs */
+input, textarea, select, button {
+  width: 100%;
+  padding: 0.7rem;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+/* Labels */
+label {
+  font-weight: 600;
+  color: #067d68;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+/* Botón enviar */
+button[type="submit"] {
+  background-color: #06c48a;
+  color: white;
+  font-weight: bold;
+  border: none;
+  transition: background 0.3s;
+}
+button[type="submit"]:hover {
+  background-color: #049d6e;
+}
+
+/* Mapa dentro del modal */
+#mapa-crear {
+  height: 250px;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  z-index: 10;
+}
+
+/* Clase para ocultar elementos */
+.oculto {
+  display: none !important;
+}
