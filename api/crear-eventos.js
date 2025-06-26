@@ -1,4 +1,8 @@
-export default async function handler(req, res) {
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req) {
   const { createClient } = await import('@supabase/supabase-js');
 
   const supabase = createClient(
@@ -17,19 +21,25 @@ export default async function handler(req, res) {
     [6.0557, -75.5005]
   ];
 
-  const hoy = new Date();
-  const nuevosEventos = gustos.map((g, i) => ({
-    nombre: `Evento de ${g}`,
-    descripcion: `Un evento especial sobre ${g.toLowerCase()}.`,
-    lugar: lugares[i],
-    fecha: new Date(hoy.getTime() + i * 86400000).toISOString(),
-    gustos_relacionados: [g],
-    latitud: coords[i][0],
-    longitud: coords[i][1],
-    creado_por: "sistema",
-    usuarios_confirmados: []
-  }));
+  const ahora = new Date();
+  const eventos = gustos.map((gusto, i) => {
+    const fecha = new Date(ahora.getTime() + (i + 1) * 86400000);
+    return {
+      nombre: `Evento de ${gusto}`,
+      descripcion: `Un evento sobre ${gusto.toLowerCase()}`,
+      lugar: lugares[i],
+      fecha: fecha.toISOString(),
+      gustos_relacionados: [gusto],
+      latitud: coords[i][0],
+      longitud: coords[i][1],
+      creado_por: "sistema",
+      usuarios_confirmados: []
+    };
+  });
 
-  await supabase.from("eventos").insert(nuevosEventos);
-  return res.status(200).json({ mensaje: "Eventos creados automáticamente" });
+  await supabase.from("eventos").insert(eventos);
+
+  return new Response(JSON.stringify({ mensaje: "✅ Eventos creados automáticamente." }), {
+    headers: { "Content-Type": "application/json" },
+  });
 }
