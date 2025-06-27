@@ -1,205 +1,220 @@
+/* RESET */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* FUENTE Y BASE */
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f4fbf9;
-  color: #333;
+  background: #f5fdfb;
+  color: #1a1a1a;
+  transition: background 0.3s, color 0.3s;
+  padding-bottom: 4rem;
 }
 
 header {
-  background-color: #06c48a;
+  background: linear-gradient(135deg, #06c48a, #048c6e);
   color: white;
-  padding: 1rem;
   text-align: center;
-  font-size: 1.3rem;
-  font-weight: bold;
-  border-bottom: 3px solid #04a97d;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  padding: 1.2rem 1rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-bottom: 2px solid #027c5c;
 }
 
+/* MAPA PRINCIPAL */
 #mapa {
-  height: calc(100vh - 70px);
+  width: 92%;
+  height: 58vh;
+  margin: 1rem auto;
   border-radius: 20px;
-  margin: 1rem;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
-.leaflet-popup-content {
-  font-size: 0.95rem;
-  font-family: 'Inter', sans-serif;
-  line-height: 1.4;
+@media (max-width: 768px) {
+  #mapa {
+    height: 54vh;
+    border-radius: 16px;
+  }
 }
 
-button {
-  background-color: #06c48a;
-  color: white;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s;
+/* POPUP DE EVENTO */
+.leaflet-popup-content {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: #1f1f1f;
+  padding: 0.5rem;
+  line-height: 1.5;
 }
-button:hover {
+
+.leaflet-popup-content h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  color: #06c48a;
+}
+
+.leaflet-popup-content p {
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+}
+
+.leaflet-popup-content button {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.4rem 0.9rem;
+  background-color: #06c48a;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.leaflet-popup-content button:hover {
   background-color: #049f70;
 }
 
-.leaflet-marker-icon.icono-negocio {
-  filter: hue-rotate(90deg);
-}
+/* BOTÓN FLOTANTE 💚 */
 #btn-negocio {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
-  background-color: #06c48a;
+  background: linear-gradient(135deg, #06c48a, #048c6e);
   color: white;
   font-size: 1.8rem;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
-  z-index: 999;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  transition: transform 0.2s ease;
+}
+#btn-negocio:hover {
+  transform: scale(1.08);
 }
 
+/* MODAL */
 .modal {
   position: fixed;
   top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex; justify-content: center; align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
+/* CONTENIDO MODAL */
 .contenido-modal {
-  background: white;
-  border-radius: 16px;
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
   padding: 2rem;
-  width: 90%;
+  width: 92%;
   max-width: 500px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  animation: fadeInUp 0.35s ease;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-#mapa-negocio {
-  height: 250px;
-  border-radius: 12px;
-  margin: 1rem 0;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.oculto {
-  display: none !important;
+/* BOTÓN CERRAR MODAL */
+#cerrar-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
-/* Reset básico */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Fuente global */
-body {
-  font-family: 'Inter', sans-serif;
-  background: #f5fdfb;
+#cerrar-modal:hover {
   color: #333;
 }
 
-/* Encabezado */
-header {
-  background-color: #06c48a;
-  color: white;
-  text-align: center;
-  padding: 1rem;
-  font-weight: bold;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* FORMULARIO */
+form {
+  margin-top: 1rem;
 }
-
-/* Mapa principal */
-#mapa {
-  width: 100%;
-  height: calc(100vh - 70px);
-  z-index: 1;
-}
-
-/* Botón corazón flotante */
-#btn-negocio {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  width: 56px;
-  height: 56px;
-  font-size: 1.5rem;
-  border: none;
-  border-radius: 50%;
-  background-color: #06c48a;
-  color: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  z-index: 999;
-  transition: background 0.3s ease;
-}
-#btn-negocio:hover {
-  background-color: #049d6e;
-}
-
-/* Modal fondo */
-.modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 1000;
-}
-
-/* Contenido del modal */
-.contenido-modal {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-/* Inputs y selects */
-input, select, button {
-  width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.8rem;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-/* Etiquetas */
 label {
   font-weight: 600;
-  color: #067d68;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
   display: block;
-  margin-bottom: 0.3rem;
+  color: #067d68;
+}
+input, select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
+  background: #fdfdfd;
+  transition: border 0.3s;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: #06c48a;
 }
 
-/* Mapa dentro del modal */
+/* MAPA INTERIOR MODAL */
 #mapa-negocio {
-  height: 250px;
+  height: 230px;
   border-radius: 12px;
   margin-bottom: 1rem;
-  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Ocultar elementos */
+/* OCULTAR */
 .oculto {
   display: none !important;
+}
+
+/* DARK MODE AUTOMÁTICO */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #101e1a;
+    color: #e1f2ef;
+  }
+  header {
+    background: #027c5c;
+    border-bottom-color: #025b45;
+  }
+  .contenido-modal {
+    background: #1b2f2b;
+    color: #e1f2ef;
+  }
+  input, select {
+    background: #2b3d39;
+    border: 1px solid #444;
+    color: #e1f2ef;
+  }
+  #cerrar-modal {
+    color: #ccc;
+  }
+  .leaflet-popup-content {
+    color: #e1f2ef;
+  }
+  #btn-negocio {
+    background: linear-gradient(135deg, #048c6e, #025b45);
+  }
 }

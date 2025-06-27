@@ -15,17 +15,18 @@
   </header>
 
   <div id="mapa"></div>
-
-  <!-- Botón corazón flotante para registrar negocio -->
   <button id="btn-negocio" title="Registrar negocio">💚</button>
 
-  <!-- Modal para registrar negocio -->
   <div id="modal-negocio" class="modal oculto">
     <div class="contenido-modal">
+      <button id="cerrar-modal">✖</button>
       <h2>📍 Registrar Negocio</h2>
       <form id="form-negocio">
         <label>Nombre del negocio</label>
         <input type="text" id="nombre-negocio" required />
+
+        <label>Dirección del negocio</label>
+        <input type="text" id="direccion-negocio" required readonly />
 
         <label>Gusto relacionado</label>
         <select id="gusto-negocio" required>
@@ -54,14 +55,22 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlbnZicGZ5amZkd2JsZWVua3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTA5MjUsImV4cCI6MjA2NjIyNjkyNX0.23sLCLNvAeRj3apPvgps6nqrVk4Qf7qaBWGyyHqN_qM";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let mapaPrincipal, marcadorNegocio = null;
+    let mapaPrincipal, mapaNegocio, marcadorNegocio;
+
+    async function obtenerDireccion(lat, lng) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        return data.display_name || "";
+      } catch (e) {
+        console.error("Error al obtener dirección:", e);
+        return "";
+      }
+    }
 
     async function cargarMapaPrincipal() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.warn("No autenticado.");
-        return;
-      }
+      if (!user) return;
 
       const { data: intereses } = await supabase
         .from("intereses")
@@ -70,11 +79,15 @@
         .single();
 
       const gustos = intereses?.gustos || [];
-      const { data: eventos } = await supabase.from("eventos").select("*");
+      const { data: eventos, error } = await supabase.from("eventos").select("*");
+      if (error) {
+        console.error("Error al obtener eventos:", error);
+        return;
+      }
 
       mapaPrincipal = L.map('mapa').setView([6.0579, -75.5011], 13);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: ''
       }).addTo(mapaPrincipal);
 
       const icono = L.icon({
@@ -84,25 +97,30 @@
         popupAnchor: [0, -32]
       });
 
-      eventos.forEach(e => {
-        if (
-          e.latitud &&
-          e.longitud &&
+      eventos
+        .filter(e =>
+          e && e.id &&
+          e.latitud && e.longitud &&
+          e.nombre && e.lugar &&
           Array.isArray(e.gustos_relacionados) &&
           e.gustos_relacionados.some(g => gustos.includes(g))
-        ) {
+        )
+        .forEach(e => {
+          const esCreador = e.creado_por === user.id;
           const popup = `
-            <strong>${e.nombre}</strong><br/>
-            📍 ${e.lugar}<br/>
-            📅 ${new Date(e.fecha).toLocaleString()}<br/>
-            🎯 ${e.gustos_relacionados.join(", ")}<br/>
-            <button onclick="confirmarAsistencia('${e.id}')">✅ Confirmar</button>
+            <div>
+              <h3>${e.nombre}</h3>
+              <p>📍 ${e.lugar}</p>
+              <p>📅 ${new Date(e.fecha).toLocaleString()}</p>
+              <p>🎯 ${e.gustos_relacionados.join(", ")}</p>
+              <button onclick="confirmarAsistencia('${e.id}')">✅ Confirmar</button>
+              ${esCreador ? `<button onclick="cancelarEvento('${e.id}')" style="margin-left:0.5rem;background:#c0392b;">❌ Cancelar</button>` : ''}
+            </div>
           `;
           L.marker([e.latitud, e.longitud], { icon: icono })
             .addTo(mapaPrincipal)
             .bindPopup(popup);
-        }
-      });
+        });
     }
 
     async function confirmarAsistencia(eventoId) {
@@ -126,21 +144,73 @@
       alert("✅ Asistencia confirmada.");
     }
 
+    async function cancelarEvento(eventoId) {
+      const confirmar = confirm("¿Estás seguro de cancelar este evento?");
+      if (!confirmar) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: evento, error } = await supabase
+        .from("eventos")
+        .select("creado_por")
+        .eq("id", eventoId)
+        .single();
+
+      if (error || !evento) {
+        alert("❌ Evento no encontrado.");
+        return;
+      }
+
+      if (evento.creado_por !== user.id) {
+        alert("❌ No puedes eliminar este evento.");
+        return;
+      }
+
+      const { error: deleteError } = await supabase
+        .from("eventos")
+        .delete()
+        .eq("id", eventoId);
+
+      if (deleteError) {
+        alert("❌ No se pudo eliminar.");
+        return;
+      }
+
+      alert("✅ Evento eliminado.");
+      location.reload();
+    }
+
     document.getElementById("btn-negocio").addEventListener("click", () => {
       document.getElementById("modal-negocio").classList.remove("oculto");
 
-      const mapaNegocio = L.map('mapa-negocio').setView([6.0579, -75.5011], 14);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: ''
-      }).addTo(mapaNegocio);
+      if (mapaNegocio) {
+        mapaNegocio.invalidateSize();
+        return;
+      }
 
-      mapaNegocio.on("click", e => {
-        const { lat, lng } = e.latlng;
-        if (marcadorNegocio) marcadorNegocio.setLatLng([lat, lng]);
-        else marcadorNegocio = L.marker([lat, lng]).addTo(mapaNegocio);
-        document.getElementById("lat-negocio").value = lat;
-        document.getElementById("lng-negocio").value = lng;
-      });
+      setTimeout(() => {
+        mapaNegocio = L.map('mapa-negocio').setView([6.0579, -75.5011], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: ''
+        }).addTo(mapaNegocio);
+
+        mapaNegocio.on("click", async e => {
+          const { lat, lng } = e.latlng;
+          if (marcadorNegocio) marcadorNegocio.setLatLng([lat, lng]);
+          else marcadorNegocio = L.marker([lat, lng]).addTo(mapaNegocio);
+
+          document.getElementById("lat-negocio").value = lat;
+          document.getElementById("lng-negocio").value = lng;
+
+          const direccion = await obtenerDireccion(lat, lng);
+          document.getElementById("direccion-negocio").value = direccion;
+        });
+      }, 200);
+    });
+
+    document.getElementById("cerrar-modal").addEventListener("click", () => {
+      document.getElementById("modal-negocio").classList.add("oculto");
     });
 
     document.getElementById("form-negocio").addEventListener("submit", async e => {
@@ -150,29 +220,61 @@
       if (!user) return alert("Inicia sesión.");
 
       const nombre = document.getElementById("nombre-negocio").value.trim();
+      const direccion = document.getElementById("direccion-negocio").value.trim();
       const gusto = document.getElementById("gusto-negocio").value;
       const lat = parseFloat(document.getElementById("lat-negocio").value);
       const lng = parseFloat(document.getElementById("lng-negocio").value);
 
-      if (!nombre || !gusto || !lat || !lng) {
+      if (!nombre || !direccion || !gusto || !lat || !lng) {
         return alert("Completa todos los campos.");
       }
 
-      const { error } = await supabase.from("negocios").insert([{
+      const creado_en = new Date().toISOString();
+
+      const { data: negocio, error } = await supabase.from("negocios").insert([{
         nombre,
+        direccion,
         gusto_relacionado: gusto,
         latitud: lat,
         longitud: lng,
-        creado_por: user.id
-      }]);
+        creado_por: user.id,
+        creado_en
+      }]).select().single();
 
       if (error) {
         alert("❌ Error al registrar negocio.");
-        console.error(error);
-      } else {
-        alert("✅ Negocio registrado con éxito.");
-        location.reload();
+        return;
       }
+
+      const ahora = new Date();
+      const horarios = {
+        "Café": [8, 9, 10, 11, 12, 14, 16],
+        "Naturaleza": [7, 9, 12, 16, 18, 20],
+        "Ejercicio": [6, 7, 8, 10, 17, 19],
+        "Lectura": [10, 14, 17],
+        "Animales": [9, 13, 16],
+        "Espiritualidad": [6, 12, 18]
+      }[gusto] || [10, 14, 17];
+
+      const eventos = horarios.map(hora => {
+        const fecha = new Date(ahora);
+        fecha.setDate(ahora.getDate() + 1);
+        fecha.setHours(hora, 0, 0, 0);
+        return {
+          nombre: `Evento en ${nombre}`,
+          lugar: nombre,
+          fecha: fecha.toISOString(),
+          latitud: lat,
+          longitud: lng,
+          gustos_relacionados: [gusto],
+          usuarios_confirmados: [],
+          creado_por: user.id
+        };
+      });
+
+      await supabase.from("eventos").insert(eventos);
+      alert("✅ Negocio y eventos generados.");
+      location.reload();
     });
 
     cargarMapaPrincipal();
