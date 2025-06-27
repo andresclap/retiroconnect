@@ -3,35 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coincidencias | RetiroConnect</title>
+  <title>Coincidencias - RetiroConnect</title>
   <link rel="stylesheet" href="coincidencias.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <header>✨ RetiroConnect</header>
+  <div class="app-container">
+    <header class="glass-header">
+      <div class="header-logo">💚 RetiroConnect</div>
+    </header>
 
-  <main>
-    <section class="agenda">
-      <h3>🌟 Tu Agenda</h3>
-      <div id="agenda-eventos">Cargando eventos...</div>
-      <a href="mis_eventos.html">
-        <button class="btn-ver-eventos">Ver todos mis eventos</button>
-      </a>
-    </section>
-  </main>
+    <main class="main-content">
+      <section class="glass-card">
+        <h2 class="section-title">✨ Tu Agenda Personal</h2>
+        <div id="agenda-eventos" class="event-list">Cargando eventos...</div>
+        <a href="mis_eventos.html" class="glass-button">📅 Ver todos mis eventos</a>
+      </section>
+    </main>
 
-  <nav class="bottom-nav">
-    <button class="nav-button" onclick="window.location.href='perfil.html'">
-      👤<span>Perfil</span>
-    </button>
-    <button class="nav-button" onclick="window.location.href='eventos.html'">
-      🎉<span>Eventos</span>
-    </button>
-    <button class="nav-button active" onclick="window.location.href='explorar.html'">
-      🌿<span>Coincidencias</span>
-    </button>
-  </nav>
+    <nav class="glass-nav">
+  <button onclick="window.location.href='perfil.html'" class="nav-btn">
+    👤<span>Perfil</span>
+  </button>
+  <button onclick="window.location.href='eventos.html'" class="nav-btn">
+    🎉<span>Eventos</span>
+  </button>
+  <button onclick="window.location.href='explorar.html'" class="nav-btn">
+    🌿<span>Coincidir</span>
+  </button>
+</nav>
+
+
+
+  </div>
 
   <script>
     const supabase = window.supabase.createClient(
@@ -50,9 +55,9 @@
         .slice(0, 3);
 
       document.getElementById("agenda-eventos").innerHTML = confirmados.length === 0
-        ? "No hay eventos confirmados."
+        ? "<p class='no-eventos'>No tienes eventos aún.</p>"
         : confirmados.map(e => `
-          <div class="agenda-evento">
+          <div class="event-item">
             <strong>${e.nombre}</strong><br/>
             📍 ${e.lugar}<br/>
             🕒 ${new Date(e.fecha).toLocaleString()}

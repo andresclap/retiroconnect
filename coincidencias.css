@@ -1,163 +1,177 @@
+/* Reset & base */
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
-
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(to bottom, #e9fff6, #d9f4ec);
+  background: linear-gradient(145deg, #eafff7, #dbf7e9);
+  min-height: 100vh;
   color: #111;
+}
+a {
+  text-decoration: none;
+}
+
+/* Contenedor principal */
+.app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-header {
+/* Header */
+.glass-header {
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.65);
+  padding: 1.2rem;
   text-align: center;
-  font-size: 1.4rem;
   font-weight: 800;
+  font-size: 1.3rem;
   color: #00b980;
-  background: white;
-  padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-main {
+.main-content {
   flex: 1;
+  padding: 1.5rem 1rem 5rem;
   display: flex;
   justify-content: center;
-  padding: 1rem;
 }
 
-.agenda {
-  backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.75);
+/* Tarjeta efecto vidrio */
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
   border-radius: 24px;
-  padding: 1.5rem;
-  width: 100%;
+  padding: 1.8rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
   max-width: 480px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  animation: cambioBordes 6s linear infinite;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  width: 100%;
+  border: 2px solid rgba(0, 185, 128, 0.15);
 }
 
-@keyframes cambioBordes {
-  0%   { border-color: #a8f5d2; }
-  50%  { border-color: #c0f1e4; }
-  100% { border-color: #a8f5d2; }
-}
-
-.agenda h3 {
+.section-title {
   text-align: center;
+  color: #007e65;
   font-size: 1.2rem;
-  margin-bottom: 1rem;
-  color: #00b980;
+  margin-bottom: 1.2rem;
 }
 
-.agenda-evento {
-  background-color: #f0fff9;
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.event-item {
+  background-color: rgba(240, 255, 250, 0.85);
   padding: 1rem;
   border-radius: 16px;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-.agenda-evento strong {
+.event-item strong {
   color: #007e65;
   font-size: 1.05rem;
 }
 
-.btn-ver-eventos {
+.no-eventos {
+  text-align: center;
+  color: #555;
+}
+
+.glass-button {
+  display: block;
   width: 100%;
-  padding: 0.9rem;
-  background: #00b980;
+  text-align: center;
+  margin-top: 1.5rem;
+  background: rgba(0, 185, 128, 0.8);
   color: white;
-  font-weight: bold;
+  padding: 0.9rem;
   border: none;
-  border-radius: 14px;
-  font-size: 1rem;
-  margin-top: 1rem;
+  border-radius: 16px;
+  font-weight: bold;
   transition: background 0.3s ease;
-  cursor: pointer;
+}
+.glass-button:hover {
+  background: rgba(0, 160, 110, 1);
 }
 
-.btn-ver-eventos:hover {
-  background: #009c73;
-}
-
-/* Navegación inferior estilo pro */
-.bottom-nav {
+/* Navegación inferior */
+/* Navegación inferior */
+.glass-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
   display: flex;
   justify-content: space-around;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  padding: 0.6rem 0.3rem;
-  border-top: 1px solid #cdeee1;
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
+  padding: 0.65rem 0.5rem;
+  border-top: 1px solid #cfeee2;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+  z-index: 50;
 }
 
-.nav-button {
-  background-color: rgba(0, 185, 128, 0.1);
-  color: #007e65;
-  border: none;
-  padding: 0.7rem;
-  border-radius: 50%;
-  font-size: 1.3rem;
+/* Botones */
+.nav-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  transition: background 0.3s ease, transform 0.2s ease;
-  flex: 1;
-  max-width: 80px;
-  margin: 0 0.3rem;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 0.5rem;
+  border-radius: 50%;
+  border: 2px solid #00b980;
+  background: rgba(0, 185, 128, 0.15);
+  color: #007e65;
+  font-size: 1.45rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
-.nav-button span {
+.nav-btn span {
   font-size: 0.7rem;
   margin-top: 0.2rem;
+  color: inherit;
 }
 
-.nav-button:hover {
-  background-color: rgba(0, 185, 128, 0.2);
-  transform: scale(1.08);
+.nav-btn:hover {
+  background: rgba(0, 185, 128, 0.25);
+  transform: scale(1.06);
 }
 
-.nav-button.active {
-  background-color: rgba(0, 185, 128, 0.3);
-  color: white;
+/* Activo */
+.nav-btn.active {
+  background: rgba(0, 185, 128, 0.2);
+  border-color: #00b980;
+  color: #007e65;
+  transform: scale(1.06);
+}
+
+
+/* Botón perfil: corrección visual */
+.perfil-btn {
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
-  .agenda {
-    padding: 1.2rem;
+  .section-title {
+    font-size: 1rem;
   }
-
-  .agenda h3 {
-    font-size: 1.05rem;
-  }
-
-  .agenda-evento {
+  .event-item {
     font-size: 0.95rem;
   }
-
-  .btn-ver-eventos {
+  .glass-button {
     font-size: 0.95rem;
-  }
-
-  .nav-button {
-    font-size: 1.1rem;
-  }
-
-  .nav-button span {
-    font-size: 0.65rem;
   }
 }
